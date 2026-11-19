@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import form_error %}
+{% block scripts %}
+  <script src="{{ url_for('static', path='statistics.js') }}" defer></script>
+{% endblock %}
+{% block content %}
+  <header class="page-header">
+    <div>
+      <h1>{{ title }}</h1>
+      <p class="muted">Заявки, созданные за выбранный период</p>
+    </div>
+  </header>
+
+  <form id="stats-period-form" method="get" action="{{ url_for('admin_statistics') }}"
+        class="card filter-card" aria-label="Период статистики" autocomplete="off">
+    <div class="stats-period">
+      <label>Дата начала <input type="date" name="date_from" value="{{ date_from }}" required></label>
+      <label>Дата окончания <input type="date" name="date_to" value="{{ date_to }}" required></label>
+    </div>
+    {{ form_error(error) }}
+  </form>
+
+  {% if report %}
+    <div class="stats-grid">
+      <section class="card section-card stats-timeline" aria-labelledby="timeline-title">
+        <header class="stats-heading">
+          <h2 id="timeline-title">Динамика заявок</h2>
+          <p class="muted">{{ 'По дням' if report.bucket_size == 1 else 'Шаг ' ~ report.bucket_size ~ ' дн.' }}</p>
+        </header>
+        {% if not report.total %}<p class="stats-empty muted">За выбранный период заявок нет.</p>{% endif %}
+        <div class="stats-plot">
+          <canvas id="stats-line" aria-hidden="true" hidden></canvas>
+          <div id="stats-tooltip" class="stats-tooltip" aria-hidden="true" hidden>
+            <span></span>
+            <strong></strong>
+          </div>
+        </div>
+        <table id="stats-daily-counts" class="stats-daily-counts" aria-labelledby="timeline-title">
+          <thead><tr><th scope="col">Период</th><th scope="col">Заявок</th></tr></thead>
+          <tbody>
+            {% set crosses_year = report.timeline[0].start.year != report.timeline[-1].end.year %}
+            {% for point in report.timeline %}
+              <tr>
+                <th scope="row" data-tick="{{ point.start.strftime('%d.%m.%y' if crosses_year else '%d.%m') }}">
+                  {{ point.start.strftime('%d.%m.%Y') }}{% if point.end != point.start %} — {{ point.end.strftime('%d.%m.%Y') }}{% endif %}
+                </th>
+                <td>{{ point.count }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card section-card" aria-labelledby="specialties-title">
+        <h2 id="specialties-title">Заявки по специальностям</h2>
+        {% set specialty_max = ([1] + (report.by_specialty.values()|list))|max %}
+        <ul class="stats-bars">
+          {% for specialty, count in report.by_specialty.items() %}
+            <li>
+              <span>{{ specialties[specialty] }}</span>
+              <strong>{{ count }}</strong>
+              <meter aria-hidden="true" min="0" max="{{ specialty_max }}" value="{{ count }}"></meter>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <section class="card section-card" aria-labelledby="statuses-title">
+        <header class="stats-heading">
+          <h2 id="statuses-title">Заявки по статусам</h2>
+          <p class="muted">Текущие статусы</p>
+        </header>
+        <div class="stats-statuses">
+          <div class="stats-donut">
+            <canvas id="stats-ring" aria-hidden="true" hidden></canvas>
+            <div class="stats-ring-label">
+              <strong>{{ report.total }}</strong>
+              <span>Всего</span>
+            </div>
+          </div>
+          <ul class="stats-legend" id="stats-status-counts">
+            {% for status, count in report.by_status.items() %}
+              <li class="stats-status-{{ status }}" data-count="{{ count }}">
+                <span>{{ statuses[status] }}</span>
+                <strong>{{ count }}</strong>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </section>
+    </div>
+  {% endif %}
+{% endblock %}

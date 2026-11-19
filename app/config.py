@@ -32,6 +32,7 @@ class Settings:
     https_only: bool
     timezone: ZoneInfo
     developer_contact: str
+    developer_phone: str = ""
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -43,4 +44,5 @@ class Settings:
             https_only=getenv("SESSION_HTTPS_ONLY", "false").lower() == "true",
             timezone=ZoneInfo(getenv("APP_TIMEZONE", "Asia/Yekaterinburg")),
             developer_contact=getenv("DEVELOPER_CONTACT", "").strip(),
+            developer_phone=getenv("DEVELOPER_PHONE", "").strip(),
         )

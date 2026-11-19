@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="narrow">
+    <p class="muted document-state">Проект документа</p>
+    <article class="card section-card legal-document">
+      {% include document_template %}
+    </article>
+  </div>
+{% endblock %}

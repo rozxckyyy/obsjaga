@@ -22,6 +22,7 @@ services:
       SESSION_HTTPS_ONLY: ${SESSION_HTTPS_ONLY:-false}
       APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Yekaterinburg}
       DEVELOPER_CONTACT: ${DEVELOPER_CONTACT:-}
+      DEVELOPER_PHONE: ${DEVELOPER_PHONE:-}
       SEED_DEMO: ${SEED_DEMO:-false}
     depends_on:
       db:

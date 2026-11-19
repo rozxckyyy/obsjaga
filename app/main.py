@@ -91,6 +91,17 @@ def logout(request: Request, user: Actor, form: PostedForm):
     return redirect(request, "login")
 
 
-@app.get("/contacts")
-def contacts(request: Request, user: Visitor):
-    return page(request, "contacts.html", title="Контакты", nav="contacts", contact=settings.developer_contact)
+@app.get("/privacy-policy")
+def privacy_policy(request: Request, user: Visitor):
+    return page(
+        request, "legal_document.html", title="Политика конфиденциальности",
+        document_template="legal/privacy_policy.html",
+    )
+
+
+@app.get("/personal-data-consent")
+def personal_data_consent(request: Request, user: Visitor):
+    return page(
+        request, "legal_document.html", title="Согласие на обработку персональных данных",
+        document_template="legal/personal_data_consent.html",
+    )

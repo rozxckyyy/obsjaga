@@ -1,7 +1,9 @@
 from collections.abc import AsyncIterator
 from hmac import compare_digest
+from re import fullmatch, sub
 from secrets import token_urlsafe
 from typing import Annotated
+from urllib.parse import quote
 
 from fastapi import Depends, Path, Request
 from fastapi.templating import Jinja2Templates
@@ -19,7 +21,20 @@ from app.services import AuthService, ServiceError
 
 settings = Settings.from_env()
 templates = Jinja2Templates(directory=ROOT / "app" / "templates")
-templates.env.globals.update(roles=ROLE_NAMES, specialties=SPECIALTY_NAMES, statuses=STATUS_NAMES)
+phone_number = sub(r"[^0-9+]", "", settings.developer_phone)
+contact = settings.developer_contact
+contact_href = f"mailto:{quote(contact, safe='@+')}" if fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", contact) else ""
+templates.env.globals.update(
+    roles=ROLE_NAMES,
+    specialties=SPECIALTY_NAMES,
+    statuses=STATUS_NAMES,
+    footer={
+        "contact": contact,
+        "contact_href": contact_href,
+        "phone": settings.developer_phone,
+        "phone_href": f"tel:{phone_number}" if fullmatch(r"\+?[0-9]+", phone_number) else "",
+    },
+)
 templates.env.filters["local_time"] = lambda dt: dt.astimezone(settings.timezone).strftime("%d.%m.%Y, %H:%M")
 
 Db = Annotated[Session, Depends(get_db)]

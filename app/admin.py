@@ -1,9 +1,12 @@
+from datetime import datetime, timedelta
+
 from fastapi import APIRouter, Request
 
 from app.models import Role
 from app.services import PresetService, ServiceError, SpecialistService, TicketService, require_role
+from app.statistics import StatisticsService
 from app.tickets import ticket_list
-from app.web import Actor, Db, PostedForm, RecordId, field, fields, page, redirect
+from app.web import Actor, Db, PostedForm, RecordId, field, fields, page, redirect, settings
 
 router = APIRouter(prefix="/admin")
 SPECIALIST_FIELDS = ("full_name", "username", "specialty")
@@ -13,6 +16,25 @@ PRESET_FIELDS = ("title", "description", "specialty", "active")
 @router.get("/tickets")
 def admin_tickets(request: Request, db: Db, user: Actor):
     return ticket_list(request, TicketService(db, user), "all", SpecialistService(db, user).list())
+
+
+@router.get("/statistics")
+def admin_statistics(request: Request, db: Db, user: Actor):
+    today = datetime.now(settings.timezone).date()
+    date_from = request.query_params.get("date_from", (today - timedelta(days=6)).isoformat())
+    date_to = request.query_params.get("date_to", today.isoformat())
+    report = error = None
+    try:
+        report = StatisticsService(db, user).report(date_from, date_to, settings.timezone)
+    except ServiceError as exc:
+        if exc.status_code != 422:
+            raise
+        error = str(exc)
+    return page(
+        request, "statistics.html", status_code=422 if error else 200,
+        title="Статистика", nav="admin_statistics", report=report,
+        date_from=date_from, date_to=date_to, error=error,
+    )
 
 
 @router.get("/specialists")
