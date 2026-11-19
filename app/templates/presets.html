@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from 'macros.html' import cell_label %}
 {% block content %}
   <header class="page-header">
     <h1>{{ title }}</h1>
@@ -7,14 +8,14 @@
   <section class="card table-card" aria-label="Список пресетов">
     {% if presets %}
       <div class="table-scroll">
-        <table>
-          <thead><tr><th scope="col">Название</th><th scope="col">Специальность</th><th scope="col">Статус</th></tr></thead>
-          <tbody>
+        <table class="responsive-table" role="table" aria-label="Пресеты">
+          <thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">Название</th><th scope="col" role="columnheader">Специальность</th><th scope="col" role="columnheader">Статус</th></tr></thead>
+          <tbody role="rowgroup">
             {% for preset in presets %}
-              <tr>
-                <td><a class="record-link" href="{{ url_for('edit_preset', preset_id=preset.id) }}">{{ preset.title }}</a></td>
-                <td>{{ specialties[preset.specialty] }}</td>
-                <td><span class="badge badge-{{ 'completed' if preset.active else 'cancelled' }}"><span></span>{{ 'Активен' if preset.active else 'Отключён' }}</span></td>
+              <tr role="row">
+                <td role="cell" class="record-heading"><a class="record-link" href="{{ url_for('edit_preset', preset_id=preset.id) }}">{{ preset.title }}</a></td>
+                <td role="cell">{{ cell_label('Специальность') }}<span>{{ specialties[preset.specialty] }}</span></td>
+                <td role="cell">{{ cell_label('Статус') }}<span class="badge badge-{{ 'completed' if preset.active else 'cancelled' }}"><span></span>{{ 'Активен' if preset.active else 'Отключён' }}</span></td>
               </tr>
             {% endfor %}
           </tbody>

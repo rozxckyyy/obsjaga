@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from 'macros.html' import cell_label %}
 {% block content %}
   <header class="page-header">
     <h1>{{ title }}</h1>
@@ -7,14 +8,14 @@
   <section class="card table-card" aria-label="Список специалистов">
     {% if specialists %}
       <div class="table-scroll">
-        <table>
-          <thead><tr><th scope="col">ФИО</th><th scope="col">Логин</th><th scope="col">Специальность</th></tr></thead>
-          <tbody>
+        <table class="responsive-table" role="table" aria-label="Специалисты">
+          <thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">ФИО</th><th scope="col" role="columnheader">Логин</th><th scope="col" role="columnheader">Специальность</th></tr></thead>
+          <tbody role="rowgroup">
             {% for person in specialists %}
-              <tr>
-                <td><a class="record-link" href="{{ url_for('edit_specialist', specialist_id=person.id) }}">{{ person.full_name }}</a></td>
-                <td>{{ person.username }}</td>
-                <td>{{ specialties[person.specialty] }}</td>
+              <tr role="row">
+                <td role="cell" class="record-heading"><a class="record-link" href="{{ url_for('edit_specialist', specialist_id=person.id) }}">{{ person.full_name }}</a></td>
+                <td role="cell">{{ cell_label('Логин') }}<span>{{ person.username }}</span></td>
+                <td role="cell">{{ cell_label('Специальность') }}<span>{{ specialties[person.specialty] }}</span></td>
               </tr>
             {% endfor %}
           </tbody>

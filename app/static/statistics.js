@@ -114,10 +114,11 @@ function enableTimeline(canvas) {
     const bounds = canvas.getBoundingClientRect();
     const pointerX = event.clientX - bounds.left;
     const pointerY = event.clientY - bounds.top;
+    const touch = event.pointerType === "touch";
     let nearest;
-    let distanceLimit = 14 ** 2;
+    let distanceLimit = touch ? Infinity : 14 ** 2;
     for (const point of points) {
-      const distance = (pointerX - point.x) ** 2 + (pointerY - point.y) ** 2;
+      const distance = (pointerX - point.x) ** 2 + (touch ? 0 : (pointerY - point.y) ** 2);
       if (distance < distanceLimit) {
         nearest = point;
         distanceLimit = distance;
@@ -141,10 +142,19 @@ function enableTimeline(canvas) {
     points = drawTimeline(context, width, height);
     hideTooltip();
   });
-  canvas.addEventListener("pointermove", showPoint);
-  canvas.addEventListener("pointerdown", showPoint);
-  canvas.addEventListener("pointerleave", hideTooltip);
+  canvas.addEventListener("pointermove", (event) => {
+    if (event.pointerType !== "touch") showPoint(event);
+  });
+  canvas.addEventListener("pointerup", (event) => {
+    if (event.pointerType === "touch") showPoint(event);
+  });
+  canvas.addEventListener("pointerleave", (event) => {
+    if (event.pointerType !== "touch") hideTooltip();
+  });
   canvas.addEventListener("pointercancel", hideTooltip);
+  document.addEventListener("pointerdown", (event) => {
+    if (event.target !== canvas) hideTooltip();
+  });
 }
 
 function drawRing(context, width, height) {

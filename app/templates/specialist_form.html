@@ -10,7 +10,7 @@
       <label>ФИО <input name="full_name" value="{{ values.get('full_name', '') }}" maxlength="120" required></label>
       <div class="form-grid">
         <label>Логин
-          <input name="username" value="{{ values.get('username', '') }}" autocomplete="off" minlength="3" maxlength="40" required>
+          <input name="username" value="{{ values.get('username', '') }}" autocomplete="off" autocapitalize="none" spellcheck="false" minlength="3" maxlength="40" required>
         </label>
         <label>Специальность
           <select name="specialty" required>{{ specialty_options(values.get('specialty', '')) }}</select>

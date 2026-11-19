@@ -16,3 +16,7 @@
 {% macro form_error(error) -%}
   {% if error %}<div class="alert alert-error" role="alert">{{ error }}</div>{% endif %}
 {%- endmacro %}
+
+{% macro cell_label(label) -%}
+  <span class="cell-label" aria-hidden="true">{{ label }}</span>
+{%- endmacro %}

@@ -21,7 +21,7 @@
         <form method="post" action="{{ url_for('sign_in') }}" class="form-stack">
           {{ csrf_input(csrf) }}
           <label>Логин
-            <input name="username" value="{{ username }}" autocomplete="username" maxlength="40" required autofocus>
+            <input name="username" value="{{ username }}" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="40" required>
           </label>
           <label>Пароль
             <input type="password" name="password" autocomplete="current-password" maxlength="128" required>
