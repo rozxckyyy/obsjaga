@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import csrf_input, form_error %}
+{% block content %}
+  <div class="login-shell">
+    <div class="login-panel">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>Общежитие<small>Служба ремонта</small></span>
+      </div>
+      <div class="building" aria-hidden="true">
+        <div class="building-tower"></div>
+        <div class="building-wing"></div>
+      </div>
+      <p>Заявки на ремонт<br>в общежитии</p>
+    </div>
+    <section class="login-card">
+      <div class="login-body">
+        <h1>Вход</h1>
+        <p class="muted">Войдите в личный кабинет.</p>
+        {{ form_error(error) }}
+        <form method="post" action="{{ url_for('sign_in') }}" class="form-stack">
+          {{ csrf_input(csrf) }}
+          <label>Логин
+            <input name="username" value="{{ username }}" autocomplete="username" maxlength="40" required autofocus>
+          </label>
+          <label>Пароль
+            <input type="password" name="password" autocomplete="current-password" maxlength="128" required>
+          </label>
+          <button class="button button-primary" type="submit">Войти</button>
+        </form>
+        <a class="quiet-link" href="{{ url_for('contacts') }}">Контакты</a>
+      </div>
+    </section>
+  </div>
+{% endblock %}

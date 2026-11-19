@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="narrow">
+    <header class="page-header"><h1>Профиль</h1></header>
+    <section class="card section-card">
+      <h2>{{ user.full_name }}</h2>
+      <dl class="facts">
+        <div><dt>Логин</dt><dd>{{ user.username }}</dd></div>
+        <div><dt>Общежитие</dt><dd>{{ user.dormitory }}</dd></div>
+        <div><dt>Комната</dt><dd>{{ user.room }}</dd></div>
+        {% if user.block %}<div><dt>Блок</dt><dd>{{ user.block }}</dd></div>{% endif %}
+      </dl>
+    </section>
+  </div>
+{% endblock %}

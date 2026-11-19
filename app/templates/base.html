@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#18243b">
+  <title>{{ title }} · Заявки общежития</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
+  {% block scripts %}{% endblock %}
+</head>
+<body class="{{ 'with-sidebar' if user else 'without-sidebar' }}">
+  {% if user %}
+    {% macro nav_link(endpoint, label, icon) %}
+      <a class="nav-link" href="{{ url_for(endpoint) }}"{% if nav == endpoint %} aria-current="page"{% endif %}>
+        <span class="nav-icon icon-{{ icon }}" aria-hidden="true"></span>{{ label }}
+      </a>
+    {% endmacro %}
+    <a class="skip-link" href="#main">К содержимому</a>
+    <aside class="sidebar">
+      <a class="brand" href="{{ url_for('home') }}">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>Общежитие<small>Служба ремонта</small></span>
+      </a>
+      <nav class="navigation" aria-label="Основное меню">
+        {% if user.role == 'student' %}
+          {{ nav_link('student_tickets', 'Мои заявки', 'list') }}
+          {{ nav_link('profile', 'Профиль', 'profile') }}
+        {% elif user.role == 'specialist' %}
+          {{ nav_link('specialist_queue', 'Очередь заявок', 'list') }}
+          {{ nav_link('specialist_tickets', 'Мои заявки', 'folder') }}
+        {% else %}
+          {{ nav_link('admin_tickets', 'Все заявки', 'list') }}
+          {{ nav_link('specialists_list', 'Специалисты', 'profile') }}
+          {{ nav_link('presets_list', 'Пресеты', 'folder') }}
+        {% endif %}
+        {{ nav_link('contacts', 'Контакты', 'contact') }}
+      </nav>
+      <div class="account">
+        <span class="avatar" aria-hidden="true">{{ user.full_name[:1] }}</span>
+        <div class="account-text">
+          <strong>{{ user.full_name }}</strong>
+          <small>{{ specialties[user.specialty] if user.specialty else roles[user.role] }}</small>
+        </div>
+        <form action="{{ url_for('logout') }}" method="post">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <button type="submit" class="logout">Выйти</button>
+        </form>
+      </div>
+    </aside>
+  {% endif %}
+
+  <main id="main" class="main">
+    {% if notice %}<div class="alert alert-success" role="status">{{ notice }}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

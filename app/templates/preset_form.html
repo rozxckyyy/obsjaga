@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import csrf_input, form_error, specialty_options %}
+{% block content %}
+  <div class="narrow">
+    <a class="back-link" href="{{ url_for('presets_list') }}">Пресеты</a>
+    <header class="page-header"><h1>{{ title }}</h1></header>
+    {{ form_error(error) }}
+    <form method="post" class="card editor form-stack">
+      {{ csrf_input(csrf) }}
+      <div class="form-grid">
+        <label>Название <input name="title" value="{{ values.get('title', '') }}" maxlength="120" required></label>
+        <label>Специальность
+          <select name="specialty" required>{{ specialty_options(values.get('specialty', '')) }}</select>
+        </label>
+      </div>
+      <label>Текст описания
+        <textarea name="description" rows="5" maxlength="4000" required>{{ values.get('description', '') }}</textarea>
+      </label>
+      <label class="check-label">
+        <input type="checkbox" name="active" value="yes"{% if values.active == 'yes' %} checked{% endif %}>
+        Показывать студентам
+      </label>
+      <div class="actions">
+        <button class="button button-primary" type="submit">Сохранить</button>
+        <a class="button button-secondary" href="{{ url_for('presets_list') }}">Назад</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

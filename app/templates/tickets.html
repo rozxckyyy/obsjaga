@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import form_error, specialty_options, status_badge %}
+{% block content %}
+  <header class="page-header">
+    <div>
+      <h1>{{ title }}</h1>
+      {% if mode == 'student' %}
+        <p class="muted">История обращений в службу ремонта.</p>
+      {% elif mode == 'queue' %}
+        <p class="muted">{{ specialties[user.specialty] }} <span class="separator">·</span> Сначала самые ранние заявки</p>
+      {% endif %}
+    </div>
+    {% if mode == 'student' %}
+      <a class="button button-primary" href="{{ url_for('new_ticket') }}"><span aria-hidden="true">+</span> Новая заявка</a>
+    {% endif %}
+  </header>
+
+  {% if mode == 'student' %}
+    <div class="overview" aria-label="Сводка по заявкам">
+      <div class="metric metric-new">
+        <span>Новые</span>
+        <strong>{{ tickets|selectattr('status', 'equalto', 'new')|list|length }}</strong>
+      </div>
+      <div class="metric metric-in-progress">
+        <span>В работе</span>
+        <strong>{{ tickets|selectattr('status', 'equalto', 'in_progress')|list|length }}</strong>
+      </div>
+      <div class="metric metric-completed">
+        <span>Выполнены</span>
+        <strong>{{ tickets|selectattr('status', 'equalto', 'completed')|list|length }}</strong>
+      </div>
+    </div>
+  {% else %}
+    <form method="get" class="card filter-card" aria-label="Фильтры заявок">
+      <div class="filter-grid">
+        <label>Общежитие
+          <select name="dormitory">
+            <option value="">Все общежития</option>
+            {% for item in dormitories %}
+              <option value="{{ item }}"{% if filters.dormitory == item %} selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+            {% if filters.dormitory and filters.dormitory not in dormitories %}
+              <option value="{{ filters.dormitory }}" selected>{{ filters.dormitory }}</option>
+            {% endif %}
+          </select>
+        </label>
+        <label>Дата создания с
+          <input type="date" name="date_from" value="{{ filters.date_from }}">
+        </label>
+        <label>Дата создания по
+          <input type="date" name="date_to" value="{{ filters.date_to }}">
+        </label>
+        {% if mode != 'queue' %}
+          <label>Статус
+            <select name="status">
+              <option value="">Все статусы</option>
+              {% for value, label in statuses.items() if mode == 'all' or value in ('in_progress', 'completed') %}
+                <option value="{{ value }}"{% if filters.status == value %} selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+        {% endif %}
+        {% if mode == 'all' %}
+          <label>Специальность
+            <select name="specialty">{{ specialty_options(filters.specialty, 'Все специальности') }}</select>
+          </label>
+          <label>Исполнитель
+            <select name="assignee">
+              <option value="">Все исполнители</option>
+              {% for person in assignees %}
+                <option value="{{ person.id }}"{% if filters.assignee == person.id|string %} selected{% endif %}>{{ person.full_name }}</option>
+              {% endfor %}
+            </select>
+          </label>
+        {% endif %}
+      </div>
+      {{ form_error(error) }}
+      <div class="actions">
+        <button class="button button-primary" type="submit">Применить</button>
+        <a class="button button-secondary" href="{{ url_for(nav) }}">Сбросить</a>
+      </div>
+    </form>
+  {% endif %}
+
+  <section class="card table-card" aria-label="Список заявок">
+    <div class="table-heading">
+      <h2>{{ 'История заявок' if mode == 'student' else 'Заявки' }}</h2>
+      <span class="count">{{ tickets|length }}</span>
+    </div>
+    {% if tickets %}
+      <div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th scope="col">Номер</th><th scope="col">Адрес</th><th scope="col">Специальность</th>
+            <th scope="col">Статус</th><th scope="col">Создана</th>
+            {% if mode == 'all' %}<th scope="col">Исполнитель</th>{% endif %}
+          </tr></thead>
+          <tbody>
+            {% for ticket in tickets %}
+              <tr>
+                <td><a class="record-link" href="{{ url_for('ticket_detail', number=ticket.number) }}" aria-label="Открыть заявку № {{ ticket.number }}">№ {{ ticket.number }}</a></td>
+                <td><span class="table-primary">Комната {{ ticket.room }}{% if ticket.block %}, блок {{ ticket.block }}{% endif %}</span><small>{{ ticket.dormitory }}</small></td>
+                <td>{{ specialties[ticket.specialty] }}</td>
+                <td>{{ status_badge(ticket.status) }}</td>
+                <td class="nowrap">{{ ticket.created_at|local_time }}</td>
+                {% if mode == 'all' %}<td>{{ ticket.assignee.full_name if ticket.assignee else '—' }}</td>{% endif %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty">
+        <span class="empty-icon nav-icon icon-list" aria-hidden="true"></span>
+        <strong>{{ 'У вас пока нет заявок' if mode == 'student' else 'Заявок не найдено' }}</strong>
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

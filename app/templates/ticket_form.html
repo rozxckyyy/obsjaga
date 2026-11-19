@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import csrf_input, form_error, specialty_options %}
+{% block scripts %}<script src="{{ url_for('static', path='ticket-form.js') }}" defer></script>{% endblock %}
+{% block content %}
+  <div class="narrow">
+    {% if ticket %}
+      <a class="back-link" href="{{ url_for('ticket_detail', number=ticket.number) }}">Заявка № {{ ticket.number }}</a>
+    {% else %}
+      <a class="back-link" href="{{ url_for('student_tickets') }}">Мои заявки</a>
+    {% endif %}
+    <header class="page-header"><h1>{{ title }}</h1></header>
+    {{ form_error(error) }}
+    <form method="post" enctype="multipart/form-data" class="card editor form-stack">
+      {{ csrf_input(csrf) }}
+      {% if ticket %}<input type="hidden" name="revision" value="{{ ticket.revision }}">{% endif %}
+      <fieldset>
+        <legend>Адрес</legend>
+        <div class="form-grid address-fields">
+          <label>Общежитие
+            <input name="dormitory" value="{{ values.dormitory }}" maxlength="120" required>
+          </label>
+          <label>Номер комнаты
+            <input name="room" value="{{ values.room }}" maxlength="32" required>
+          </label>
+          <label>Блок <span class="optional">необязательно</span>
+            <input name="block" value="{{ values.block }}" maxlength="32">
+          </label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Что нужно починить</legend>
+        <div class="form-grid">
+          <label>Специальность
+            <select id="specialty" name="specialty" required>{{ specialty_options(values.specialty) }}</select>
+          </label>
+          <label>Пресет <span class="optional">необязательно</span>
+            <select id="preset" aria-describedby="preset-hint" disabled>
+              <option value="">Сначала выберите специальность</option>
+            </select>
+          </label>
+        </div>
+        <template id="preset-options">
+          {% for preset in presets %}
+            <option value="{{ preset.id }}" data-specialty="{{ preset.specialty }}" data-description="{{ preset.description }}">{{ preset.title }}</option>
+          {% endfor %}
+        </template>
+        <p class="help" id="preset-hint">Пресет подставит текст в описание. Его можно отредактировать.</p>
+        <label>Описание
+          <textarea id="description" name="description" rows="5" maxlength="4000" required>{{ values.description }}</textarea>
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>Фото <span class="optional">необязательно</span></legend>
+        {% if has_photo %}
+          <div class="existing-photo">
+            <a href="{{ url_for('ticket_photo', number=ticket.number) }}" target="_blank" rel="noopener">Открыть текущее фото</a>
+            <label class="check-label">
+              <input type="checkbox" name="remove_photo" value="yes"{% if remove_photo %} checked{% endif %}>
+              Удалить текущее фото
+            </label>
+          </div>
+        {% endif %}
+        <input type="file" name="photo" accept="image/jpeg,image/png" aria-label="{{ 'Новое фото' if has_photo else 'Фото' }}" aria-describedby="photo-hint">
+        <p class="help" id="photo-hint">Одно фото JPEG или PNG до 5 МиБ.{% if has_photo %} Новый файл заменит текущее фото.{% endif %}</p>
+      </fieldset>
+      <div class="actions">
+        <button class="button button-primary" type="submit">{{ 'Сохранить изменения' if ticket else 'Отправить заявку' }}</button>
+        <a class="button button-secondary" href="{{ url_for('ticket_detail', number=ticket.number) if ticket else url_for('student_tickets') }}">Назад</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

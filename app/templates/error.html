@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="narrow">
+    <section class="card section-card error-card">
+      <h1>{{ title }}</h1>
+      <p class="muted">{{ error }}</p>
+      <div class="actions">
+        {% if number %}<a class="button button-primary" href="{{ url_for('ticket_detail', number=number) }}">Открыть карточку</a>{% endif %}
+        <a class="button button-secondary" href="{{ url_for('home') }}">{{ 'В кабинет' if user else 'На главную' }}</a>
+      </div>
+    </section>
+  </div>
+{% endblock %}

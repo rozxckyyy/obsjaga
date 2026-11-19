@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="narrow">
+    {% if not user %}<a class="back-link" href="{{ url_for('login') }}">Вход в кабинет</a>{% endif %}
+    <header class="page-header"><h1>Контакты</h1></header>
+    <section class="card section-card">
+      <h2>Разработчик</h2>
+      <p class="contact-value">{{ contact or 'Контакт пока не указан.' }}</p>
+    </section>
+  </div>
+{% endblock %}

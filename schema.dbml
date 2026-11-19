@@ -1,0 +1,84 @@
+Project dorm_maintenance {
+  database_type: 'PostgreSQL'
+  Note: 'Логическая схема сервиса заявок общежития в третьей нормальной форме.'
+}
+
+Table users {
+  id integer [pk, increment]
+  username varchar(40) [not null, unique]
+  full_name varchar(120) [not null]
+  password_hash varchar(255) [not null]
+  role varchar(10) [not null]
+  active boolean [not null, default: true]
+  specialty varchar(11) [note: 'Текущая специальность сотрудника.']
+  dormitory varchar(120)
+  room varchar(32)
+  block varchar(32)
+
+  checks {
+    `role IN ('student', 'specialist', 'admin')` [name: 'ck_users_role']
+    `specialty IN ('carpenter', 'electrician', 'plumber')` [name: 'ck_users_specialty_value']
+    `(role = 'specialist') = (specialty IS NOT NULL)` [name: 'ck_users_specialty']
+    `(role = 'student' AND dormitory IS NOT NULL AND room IS NOT NULL) OR (role <> 'student' AND dormitory IS NULL AND room IS NULL AND block IS NULL)` [name: 'ck_users_address']
+  }
+
+  Note: 'Адрес в профиле студента служит значением по умолчанию для новой заявки.'
+}
+
+Table tickets {
+  number integer [pk, increment]
+  author_id integer [not null, note: 'Автор заявки, студент.']
+  assignee_id integer [note: 'Назначенный специалист. До взятия в работу поле пустое.']
+  dormitory varchar(120) [not null]
+  room varchar(32) [not null]
+  block varchar(32)
+  specialty varchar(11) [not null, note: 'Специальность, выбранная для заявки.']
+  description text [not null, note: 'Итоговый текст, в том числе при выборе пресета.']
+  status varchar(11) [not null, default: 'new']
+  revision integer [not null, default: 1, note: 'Версия для проверки устаревших форм.']
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  taken_at timestamptz
+  completed_at timestamptz
+
+  checks {
+    `specialty IN ('carpenter', 'electrician', 'plumber')` [name: 'ck_tickets_specialty']
+    `status IN ('new', 'in_progress', 'completed', 'cancelled')` [name: 'ck_tickets_status']
+    `(status IN ('in_progress', 'completed')) = (assignee_id IS NOT NULL) AND (assignee_id IS NOT NULL) = (taken_at IS NOT NULL) AND (status = 'completed') = (completed_at IS NOT NULL)` [name: 'ck_tickets_assignment']
+  }
+
+  Note: 'Адрес задаётся для каждой заявки отдельно. Специальность заявки сохраняется при смене специальности её исполнителя.'
+}
+
+Table presets {
+  id integer [pk, increment]
+  specialty varchar(11) [not null]
+  title varchar(120) [not null]
+  description text [not null]
+  active boolean [not null, default: true]
+
+  indexes {
+    (specialty, title) [unique, name: 'uq_presets_specialty_title']
+  }
+
+  checks {
+    `specialty IN ('carpenter', 'electrician', 'plumber')` [name: 'ck_presets_specialty']
+  }
+
+  Note: 'Пресет подставляет текст в форму. Заявка хранит итоговое описание.'
+}
+
+Table attachments {
+  ticket_number integer [pk]
+  content bytea [not null]
+
+  checks {
+    `octet_length(content) BETWEEN 1 AND 5242880` [name: 'ck_attachments_size']
+  }
+
+  Note: 'Одно фото JPEG или PNG на заявку. В логической схеме MIME-тип определяется по содержимому.'
+}
+
+Ref ticket_author: tickets.author_id > users.id
+Ref ticket_assignee: tickets.assignee_id >? users.id
+Ref ticket_photo: tickets.number -? attachments.ticket_number [delete: cascade]

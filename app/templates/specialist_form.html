@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import csrf_input, form_error, specialty_options %}
+{% block content %}
+  <div class="narrow">
+    <a class="back-link" href="{{ url_for('specialists_list') }}">Специалисты</a>
+    <header class="page-header"><h1>{{ title }}</h1></header>
+    {{ form_error(error) }}
+    <form method="post" class="card editor form-stack">
+      {{ csrf_input(csrf) }}
+      <label>ФИО <input name="full_name" value="{{ values.get('full_name', '') }}" maxlength="120" required></label>
+      <div class="form-grid">
+        <label>Логин
+          <input name="username" value="{{ values.get('username', '') }}" autocomplete="off" minlength="3" maxlength="40" required>
+        </label>
+        <label>Специальность
+          <select name="specialty" required>{{ specialty_options(values.get('specialty', '')) }}</select>
+        </label>
+      </div>
+      <label>{{ 'Новый пароль' if editing else 'Пароль' }}
+        {% if editing %}<span class="optional">необязательно</span>{% endif %}
+        <input type="password" name="password" autocomplete="new-password" minlength="8" maxlength="128"{% if not editing %} required{% endif %}>
+      </label>
+      <div class="actions">
+        <button class="button button-primary" type="submit">Сохранить</button>
+        <a class="button button-secondary" href="{{ url_for('specialists_list') }}">Назад</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

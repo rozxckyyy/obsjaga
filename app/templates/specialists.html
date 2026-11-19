@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+  <header class="page-header">
+    <h1>{{ title }}</h1>
+    <a class="button button-primary" href="{{ url_for('new_specialist') }}"><span aria-hidden="true">+</span> Добавить специалиста</a>
+  </header>
+  <section class="card table-card" aria-label="Список специалистов">
+    {% if specialists %}
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th scope="col">ФИО</th><th scope="col">Логин</th><th scope="col">Специальность</th></tr></thead>
+          <tbody>
+            {% for person in specialists %}
+              <tr>
+                <td><a class="record-link" href="{{ url_for('edit_specialist', specialist_id=person.id) }}">{{ person.full_name }}</a></td>
+                <td>{{ person.username }}</td>
+                <td>{{ specialties[person.specialty] }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty"><strong>Специалистов пока нет</strong></div>
+    {% endif %}
+  </section>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import csrf_input, status_badge %}
+{% block content %}
+  <a class="back-link" href="{{ url_for(nav) }}">{{ {'student_tickets':'Мои заявки', 'specialist_tickets':'Мои заявки', 'specialist_queue':'Очередь заявок', 'admin_tickets':'Все заявки'}[nav] }}</a>
+  <header class="page-header">
+    <div>
+      <h1>{{ title }}</h1>
+      <p class="muted">Создана {{ ticket.created_at|local_time }}</p>
+    </div>
+    {{ status_badge(ticket.status) }}
+  </header>
+  <div class="detail-grid">
+    <section class="card section-card">
+      <h2>Описание</h2>
+      <p class="description">{{ ticket.description }}</p>
+      {% if has_photo %}
+        <div class="photo-attachment">
+          <h2>Фото</h2>
+          <a href="{{ url_for('ticket_photo', number=ticket.number) }}" target="_blank" rel="noopener">
+            <img src="{{ url_for('ticket_photo', number=ticket.number) }}" alt="Фото неисправности">
+          </a>
+        </div>
+      {% endif %}
+      {% if (user.role == 'student' and ticket.status == 'new') or (user.role == 'specialist' and ticket.status in ('new', 'in_progress')) %}
+        <div class="actions ticket-actions">
+          {% if user.role == 'student' %}
+            <a class="button button-primary" href="{{ url_for('edit_ticket', number=ticket.number) }}">Редактировать</a>
+            <form method="post" action="{{ url_for('cancel_ticket', number=ticket.number) }}">
+              {{ csrf_input(csrf) }}
+              <input type="hidden" name="revision" value="{{ ticket.revision }}">
+              <button type="submit" class="button button-danger">Отменить заявку</button>
+            </form>
+          {% else %}
+            {% set taking = ticket.status == 'new' %}
+            <form method="post" action="{{ url_for('take_ticket' if taking else 'complete_ticket', number=ticket.number) }}">
+              {{ csrf_input(csrf) }}
+              <input type="hidden" name="revision" value="{{ ticket.revision }}">
+              <button type="submit" class="button button-primary">{{ 'Взять в работу' if taking else 'Отметить выполненной' }}</button>
+            </form>
+          {% endif %}
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="card section-card">
+      <h2>Данные заявки</h2>
+      <dl class="facts">
+        <div><dt>Общежитие</dt><dd>{{ ticket.dormitory }}</dd></div>
+        <div><dt>Комната</dt><dd>{{ ticket.room }}{% if ticket.block %}, блок {{ ticket.block }}{% endif %}</dd></div>
+        <div><dt>Специальность</dt><dd>{{ specialties[ticket.specialty] }}</dd></div>
+        {% if user.role != 'student' %}<div><dt>Автор</dt><dd>{{ ticket.author.full_name }}</dd></div>{% endif %}
+        {% if ticket.assignee %}<div><dt>Исполнитель</dt><dd>{{ ticket.assignee.full_name }}</dd></div>{% endif %}
+        {% if ticket.taken_at %}<div><dt>Взята в работу</dt><dd>{{ ticket.taken_at|local_time }}</dd></div>{% endif %}
+        {% if ticket.completed_at %}<div><dt>Выполнена</dt><dd>{{ ticket.completed_at|local_time }}</dd></div>{% endif %}
+      </dl>
+    </section>
+  </div>
+{% endblock %}
